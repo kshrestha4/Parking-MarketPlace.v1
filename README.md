@@ -34,6 +34,31 @@ npm run lint   # eslint
 npm run build  # production build + type check
 ```
 
+## Local database
+
+The app uses PostgreSQL with PostGIS. Supabase is the production home for
+Postgres; locally we run the same thing inside a Docker container so you can
+apply and test migrations without a Supabase account. It listens on port 5433
+to avoid clashing with any system Postgres already on 5432.
+
+```bash
+npm run db:up        # start the PostGIS container
+npm run db:migrate   # apply every migration in supabase/migrations/
+```
+
+The schema lives as versioned SQL migrations in `supabase/migrations/`. Migrations
+are applied in order by `scripts/db/migrate.sh`. A small `scripts/db/mock-auth.sql`
+stands in for Supabase's `auth` schema so migrations run against local Postgres.
+
+Key notes on the schema:
+
+- Parking locations are PostGIS `geography(Point, 4326)` with a GiST index, so
+  radius searches run in the database, not in JavaScript.
+- Double booking is prevented at the database level with a GiST exclusion
+  constraint on reservations, not just in the app.
+- Row-level security is on for every table; owners and customers each only see
+  and change the rows they're allowed to.
+
 ## Environment variables
 
 There are no real environment variables yet — the app runs fine without any.
