@@ -38,6 +38,45 @@ describe("validateSearchParams", () => {
   });
 });
 
+describe("price filters", () => {
+  it("accepts valid min and max prices", () => {
+    const errors = validateSearchParams(40, -74, 5000, {
+      minPrice: 5,
+      maxPrice: 20,
+    });
+    expect(errors).toEqual({});
+  });
+
+  it("rejects a negative min price", () => {
+    const errors = validateSearchParams(40, -74, 5000, { minPrice: -1 });
+    expect(errors.minPrice).toBeTruthy();
+  });
+
+  it("rejects max price less than min price", () => {
+    const errors = validateSearchParams(40, -74, 5000, {
+      minPrice: 10,
+      maxPrice: 5,
+    });
+    expect(errors.maxPrice).toBeTruthy();
+  });
+});
+
+describe("parking type filter", () => {
+  it("accepts a valid parking type", () => {
+    const errors = validateSearchParams(40, -74, 5000, {
+      parkingType: "lot",
+    });
+    expect(errors).toEqual({});
+  });
+
+  it("rejects an unsupported parking type", () => {
+    const errors = validateSearchParams(40, -74, 5000, {
+      parkingType: "helicopter",
+    });
+    expect(errors.parkingType).toBeTruthy();
+  });
+});
+
 describe("distance helpers", () => {
   it("converts meters to miles", () => {
     expect(metersToMiles(1609.344)).toBeCloseTo(1);
