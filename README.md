@@ -158,7 +158,8 @@ We're building toward a deployable MVP in this order:
 3. Authentication (customer / owner / admin) ✅
 4. Owner parking listings ✅
 5. Map + geospatial search ✅
-6. Availability and reservations (with double-booking protection)
-7. Stripe Connect payments and owner payouts
-8. Reviews and notifications
-9. End-to-end tests, security pass, deployment docs
+6. Customer parking search and filters ✅
+7. Availability and reservations (with double-booking protection)
+8. Stripe Connect payments and owner payouts
+9. Reviews and notifications
+10. End-to-end tests, security pass, deployment docs
