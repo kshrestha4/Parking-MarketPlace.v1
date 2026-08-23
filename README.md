@@ -71,6 +71,21 @@ npm run lint   # eslint
 npm run build  # production build + type check
 ```
 
+## Parking map
+
+The customer map is built with [MapLibre GL JS](https://maplibre.org/). MapLibre
+renders tiles but doesn't serve them, so a separate tile/style provider is
+involved. It defaults to [OpenFreeMap](https://openfreemap.org/) — free,
+keyless, and license-friendly — which is fine for local development. For
+production, point `NEXT_PUBLIC_MAP_STYLE_URL` at a commercial provider (e.g.
+MapTiler) that meets your needs.
+
+Approved parking is stored as PostGIS `geography(Point, 4326)` with a GiST
+index. Search runs server-side through a `search_parking` database function:
+the browser sends a lat/lng/radius, PostGIS filters and measures distances,
+and only approved lots within the radius come back ordered by distance. The
+frontend never fetches every lot to sort them in JavaScript.
+
 ## Local database
 
 The app uses PostgreSQL with PostGIS. Supabase is the production home for
@@ -142,7 +157,7 @@ We're building toward a deployable MVP in this order:
 2. Database schema + PostGIS ✅
 3. Authentication (customer / owner / admin) ✅
 4. Owner parking listings ✅
-5. Map + geospatial search
+5. Map + geospatial search ✅
 6. Availability and reservations (with double-booking protection)
 7. Stripe Connect payments and owner payouts
 8. Reviews and notifications
