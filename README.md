@@ -13,6 +13,7 @@ feature has tests behind it before we move on.
 - Site header/footer and routes for search, host, and sign-in
 - PostgreSQL + PostGIS schema as versioned migrations
 - **Supabase authentication** for customers, owners, and admins
+- **Owner parking listing workflow** (create, save draft, submit, approve)
 - ESLint, TypeScript, and Vitest ready
 
 ## Authentication
@@ -33,6 +34,24 @@ The important rule: a user's role is *never* trusted from the browser. Roles
 live in the `profiles` table and are set on the server at signup. A database
 trigger prevents anyone from changing their own role; only the service role
 can promote an account.
+
+## Owner parking listings
+
+Owners add parking spaces from their dashboard. A listing can be saved as a
+draft and submitted later, or submitted directly for review. Administrators
+approve or reject it; only *approved* listings are visible to customers, and
+that's enforced by the database (row-level security), not just the UI.
+
+A listing is created through a `save_listing` database function so the listing
+and its availability, pricing, and blackout dates are written atomically, and
+so the PostGIS point is built with `ST_MakePoint` rather than massaged in the
+client. Ownership is checked by both the server action and the function itself;
+changing the listing id in the URL can't get you access to someone else's
+listing.
+
+Photos upload to Supabase Storage as `parking-images`; until storage is wired
+up, the form notes that uploads aren't active rather than pretending they
+succeeded.
 
 ## How to run it
 
@@ -105,8 +124,8 @@ src/
     auth/actions.ts        # signup/login/logout server actions
     auth/callback/route.ts # email-confirmation code exchange
     dashboard/             # customer dashboard (role-gated)
-    dashboard/host/        # owner dashboard (role-gated)
-    admin/                 # admin (role-gated)
+    dashboard/host/        # owner dashboard + listing workflows (role-gated)
+    admin/                 # admin approval dashboard (role-gated)
     unauthorized/          # 401 page
   lib/
     supabase/              # client/server/admin/proxy Supabase clients + config
@@ -119,13 +138,12 @@ src/
 
 We're building toward a deployable MVP in this order:
 
-1. Clean foundation (this milestone)
-2. Database schema + PostGIS
-3. Authentication (customer / owner / admin)
-4. Owner parking listings
+1. Clean foundation ✅
+2. Database schema + PostGIS ✅
+3. Authentication (customer / owner / admin) ✅
+4. Owner parking listings ✅
 5. Map + geospatial search
 6. Availability and reservations (with double-booking protection)
 7. Stripe Connect payments and owner payouts
-8. Admin dashboard
-9. Reviews and notifications
-10. End-to-end tests, security pass, deployment docs
+8. Reviews and notifications
+9. End-to-end tests, security pass, deployment docs
