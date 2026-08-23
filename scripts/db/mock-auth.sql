@@ -13,13 +13,15 @@ create table if not exists auth.users (
   created_at timestamptz not null default now()
 );
 
--- Returns null locally. In Supabase this resolves to the signed-in user id.
+-- Resolves the calling user from the request.jwt.claims setting. Supabase sets
+-- this on every authenticated request; locally we set it before calling RPCs
+-- or running queries so RLS behaves the same way.
 create or replace function auth.uid()
 returns uuid
 language sql
 stable
 as $$
-  select null::uuid;
+  select (coalesce(current_setting('request.jwt.claims', true)::jsonb, '{}'::jsonb) ->> 'sub')::uuid;
 $$;
 
 create or replace function auth.role()
@@ -27,5 +29,5 @@ returns text
 language sql
 stable
 as $$
-  select null::text;
+  select coalesce(current_setting('request.jwt.claims', true)::jsonb, '{}'::jsonb) ->> 'role';
 $$;
