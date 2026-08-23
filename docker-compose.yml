@@ -1,0 +1,23 @@
+# Local development database with PostGIS.
+#
+# Supabase is the production home for Postgres, so this container is only for
+# developing and running migrations locally. It maps to port 5433 to avoid
+# clashing with any system Postgres already on 5432.
+#
+#   docker compose up -d
+#   npm run db:migrate
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: parking
+      POSTGRES_PASSWORD: parking
+      POSTGRES_DB: parking
+    ports:
+      - "5433:5432"
+    volumes:
+      - parking_pgdata:/var/lib/postgresql/data
+
+volumes:
+  parking_pgdata:
