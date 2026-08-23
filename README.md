@@ -4,17 +4,35 @@ A parking-space marketplace where people can list unused parking spaces and
 drivers can find, compare, and reserve them.
 
 We're building it in small milestones so the foundation lands clean and each
-feature has tests behind it before we move on. This is the first milestone: a
-Next.js app shell that runs locally and is wired up for the database and auth
-work that's coming next.
+feature has tests behind it before we move on.
 
 ## What's here so far
 
-- Next.js (App Router) + React + TypeScript + Tailwind CSS
+- Next.js 16 (App Router) + React + TypeScript + Tailwind CSS
 - A landing page with clear "find parking" / "list your space" entry points
-- Basic site header/footer and routes for search, host, and sign-in
-- ESLint and TypeScript configured
-- An `.env.example` documenting the variables we'll need
+- Site header/footer and routes for search, host, and sign-in
+- PostgreSQL + PostGIS schema as versioned migrations
+- **Supabase authentication** for customers, owners, and admins
+- ESLint, TypeScript, and Vitest ready
+
+## Authentication
+
+Auth uses Supabase, wired up through `@supabase/ssr`. Sessions are stored in
+the cookies and kept fresh by a Next.js `proxy` (the current replacement for
+middleware in Next 16). Pages read the signed-in user server-side and enforce
+roles from the database before rendering anything protected.
+
+What's covered:
+
+- Customer and owner registration + login/logout
+- Protected, role-gated pages (`/dashboard`, `/dashboard/host`, `/admin`)
+- An `/unauthorized` page and an `/auth/callback` route for email confirmation
+- Server-side validation and friendly error messages
+
+The important rule: a user's role is *never* trusted from the browser. Roles
+live in the `profiles` table and are set on the server at signup. A database
+trigger prevents anyone from changing their own role; only the service role
+can promote an account.
 
 ## How to run it
 
@@ -61,10 +79,21 @@ Key notes on the schema:
 
 ## Environment variables
 
-There are no real environment variables yet — the app runs fine without any.
-As we add auth, the database, payments, and maps, we'll need them. Copy
-`.env.example` to `.env.local` and fill in values as features land. Secrets
-are never committed.
+Copy `.env.example` to `.env.local` and fill in real values. Secrets are never
+committed.
+
+The app runs (and degrades gracefully) without auth configured, but to actually
+sign in you need a Supabase project and these variables:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=  # the anon/publishable key
+SUPABASE_SERVICE_ROLE_KEY=             # server-only, for signup/role/admin
+```
+
+In your Supabase project, set the site URL and add a redirect URL pointing at
+`/auth/callback` so email confirmation resolves. Apply the migrations to the
+project first (they're in `supabase/migrations/`).
 
 ## Project structure
 
@@ -72,10 +101,18 @@ are never committed.
 src/
   app/            # App Router pages and route handlers
     page.tsx      # landing page
-    search/       # customer search (coming)
-    host/         # owner listing (coming)
-    login/        # sign-in (coming)
-  components/     # shared UI (header, footer)
+    login/, signup/        # auth
+    auth/actions.ts        # signup/login/logout server actions
+    auth/callback/route.ts # email-confirmation code exchange
+    dashboard/             # customer dashboard (role-gated)
+    dashboard/host/        # owner dashboard (role-gated)
+    admin/                 # admin (role-gated)
+    unauthorized/          # 401 page
+  lib/
+    supabase/              # client/server/admin/proxy Supabase clients + config
+    auth.ts                # getCurrentUser / requireUser / requireRole
+    validation.ts          # server-side form validation
+  components/     # shared UI (header, footer, setup notice)
 ```
 
 ## Roadmap

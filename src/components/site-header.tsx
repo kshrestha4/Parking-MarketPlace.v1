@@ -1,6 +1,18 @@
 import Link from "next/link";
 
-export function SiteHeader() {
+import { getCurrentUser } from "@/lib/auth";
+import { logout } from "@/app/auth/actions";
+
+export async function SiteHeader() {
+  const { user, profile } = await getCurrentUser();
+
+  const dashboardHref =
+    profile?.role === "owner"
+      ? "/dashboard/host"
+      : profile?.role === "admin"
+        ? "/admin"
+        : "/dashboard";
+
   return (
     <header className="border-b border-white/10">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
@@ -14,12 +26,32 @@ export function SiteHeader() {
           <Link href="/host" className="transition-colors hover:text-white">
             Host
           </Link>
-          <Link
-            href="/login"
-            className="rounded-full border border-white/15 px-4 py-1.5 transition-colors hover:border-white/40 hover:text-white"
-          >
-            Sign in
-          </Link>
+
+          {user ? (
+            <>
+              <Link
+                href={dashboardHref}
+                className="rounded-full border border-white/15 px-4 py-1.5 transition-colors hover:border-white/40 hover:text-white"
+              >
+                Dashboard
+              </Link>
+              <form action={logout}>
+                <button
+                  type="submit"
+                  className="transition-colors hover:text-white"
+                >
+                  Sign out
+                </button>
+              </form>
+            </>
+          ) : (
+            <Link
+              href="/login"
+              className="rounded-full border border-white/15 px-4 py-1.5 transition-colors hover:border-white/40 hover:text-white"
+            >
+              Sign in
+            </Link>
+          )}
         </nav>
       </div>
     </header>
