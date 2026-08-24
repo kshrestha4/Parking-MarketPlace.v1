@@ -9,6 +9,7 @@
     "lint": "eslint",
     "db:up": "docker compose up -d",
     "db:migrate": "bash scripts/db/migrate.sh",
+    "verify:supabase": "node scripts/verify-supabase.mjs",
     "test": "vitest run"
   },
   "dependencies": {

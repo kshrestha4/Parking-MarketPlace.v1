@@ -151,9 +151,19 @@ export function ListingForm({ initial }: { initial: InitialListing | null }) {
       }
       setUploading(true);
       const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        setUploading(false);
+        setStorageNotice("You need to be signed in to upload photos.");
+        return;
+      }
       const paths: string[] = [];
       for (const photo of newFiles) {
-        const filePath = `${crypto.randomUUID()}-${photo.file.name.replace(/\s+/g, "-")}`;
+        // Paths are prefixed with the owner id so storage RLS can scope every
+        // object to the person who uploaded it.
+        const filePath = `${user.id}/${crypto.randomUUID()}-${photo.file.name.replace(/\s+/g, "-")}`;
         const { error } = await supabase.storage
           .from("parking-images")
           .upload(filePath, photo.file);
