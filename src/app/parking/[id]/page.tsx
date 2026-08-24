@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import BookingForm from "@/components/booking-form";
+import { getCurrentUser } from "@/lib/auth";
 import { centsToDollars } from "@/lib/listings";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -34,7 +36,7 @@ export default async function ParkingPage({ params }: { params: Promise<{ id: st
 
   const priceRes = await supabase
     .from("parking_pricing")
-    .select("price_per_hour_cents, currency")
+    .select("price_per_hour_cents, currency, platform_fee_percent")
     .eq("parking_lot_id", id)
     .single();
 
@@ -52,6 +54,9 @@ export default async function ParkingPage({ params }: { params: Promise<{ id: st
 
   const hourly = centsToDollars(priceRes.data?.price_per_hour_cents ?? 0);
   const currency = priceRes.data?.currency ?? "USD";
+  const platformFeePercent = priceRes.data?.platform_fee_percent ?? 10;
+
+  const { user } = await getCurrentUser();
 
   let imageUrls: string[] = [];
   if (isSupabaseConfigured()) {
@@ -94,6 +99,14 @@ export default async function ParkingPage({ params }: { params: Promise<{ id: st
           {currency} {hourly.toFixed(2)}
         </p>
       </div>
+
+      <BookingForm
+        lotId={lot.id}
+        hourlyRateCents={priceRes.data?.price_per_hour_cents ?? 0}
+        platformFeePercent={platformFeePercent}
+        currency={currency}
+        signedIn={Boolean(user)}
+      />
 
       {lot.description && (
         <section className="mt-8">

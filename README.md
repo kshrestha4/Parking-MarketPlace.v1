@@ -14,6 +14,7 @@ feature has tests behind it before we move on.
 - PostgreSQL + PostGIS schema as versioned migrations
 - **Supabase authentication** for customers, owners, and admins
 - **Owner parking listing workflow** (create, save draft, submit, approve)
+- **Reservations** with database-level double-booking protection
 - ESLint, TypeScript, and Vitest ready
 
 ## Authentication
@@ -70,6 +71,25 @@ Other useful commands:
 npm run lint   # eslint
 npm run build  # production build + type check
 ```
+
+## Reservations
+
+Customers book parking from the listing page: pick a date, start time, and end
+time, see a live price estimate, and reserve. Booking is validated twice — the
+server action checks the window, then `create_reservation()` in the database
+checks the lot's weekly hours and blackout dates, computes the authoritative
+price (hourly rate × duration + platform fee), and inserts the reservation.
+
+The final guarantee against double booking is a GiST exclusion constraint on
+`reservations` that refuses any row overlapping an existing one on the same
+lot, so even two requests racing each other can't both succeed.
+
+Customers manage bookings under `/dashboard/reservations` (upcoming, past,
+cancel). Owners see who booked their spaces under `/dashboard/host/reservations`.
+
+Pricing is stored in cents and calculated server-side only; the client shows an
+estimate from the same formula. A booking must fit inside a single weekly open
+window — overnight multi-day bookings aren't supported yet.
 
 ## Parking map
 
@@ -159,7 +179,7 @@ We're building toward a deployable MVP in this order:
 4. Owner parking listings ✅
 5. Map + geospatial search ✅
 6. Customer parking search and filters ✅
-7. Availability and reservations (with double-booking protection)
+7. Reservations and availability (with double-booking protection) ✅
 8. Stripe Connect payments and owner payouts
 9. Reviews and notifications
 10. End-to-end tests, security pass, deployment docs

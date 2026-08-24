@@ -32,12 +32,20 @@ export default async function HostDashboardPage() {
             Manage your parking spaces and see where they stand.
           </p>
         </div>
-        <Link
-          href="/dashboard/host/listings/new"
-          className="rounded-full bg-white px-5 py-2.5 text-sm font-medium text-black transition-colors hover:bg-zinc-200"
-        >
-          Add parking
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/dashboard/host/reservations"
+            className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-medium transition-colors hover:border-white/50"
+          >
+            Bookings
+          </Link>
+          <Link
+            href="/dashboard/host/listings/new"
+            className="rounded-full bg-white px-5 py-2.5 text-sm font-medium text-black transition-colors hover:bg-zinc-200"
+          >
+            Add parking
+          </Link>
+        </div>
       </div>
 
       {!supabase && (

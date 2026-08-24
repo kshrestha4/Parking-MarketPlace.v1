@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { requireRole } from "@/lib/auth";
 
@@ -19,13 +20,18 @@ export default async function CustomerDashboardPage() {
         You can find parking, manage reservations, and leave reviews here.
       </p>
 
-      <div className="mt-10 rounded-md border border-white/10 p-6">
-        <h2 className="font-medium">Your reservations</h2>
-        <p className="mt-2 text-sm text-zinc-400">
-          Reservations are coming in an upcoming milestone.Once they&apos;re here,
-      you&apos;ll see your upcoming and past bookings in this section.
-        </p>
-      </div>
+      <Link
+        href="/dashboard/reservations"
+        className="mt-10 flex items-center justify-between rounded-md border border-white/10 p-6 transition-colors hover:border-white/25"
+      >
+        <div>
+          <h2 className="font-medium">Your reservations</h2>
+          <p className="mt-2 text-sm text-zinc-400">
+            View upcoming and past bookings, or cancel one.
+          </p>
+        </div>
+        <span className="text-sm text-zinc-400">View →</span>
+      </Link>
     </div>
   );
 }
